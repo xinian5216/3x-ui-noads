@@ -30,10 +30,9 @@ import (
 	"gvisor.dev/gvisor/pkg/tcpip/transport/udp"
 )
 
-// tunQueueDepth is the outbound packet queue depth for both the gVisor
-// channel endpoint and the handoff channel to amneziawg-go's TUN reader
-// (see the stackTun literal in createNetTUNWithStack for why both need it).
-const tunQueueDepth = 1024
+// tunQueueDepth is the outbound packet queue depth for both the gVisor channel endpoint and the handoff channel to amneziawg-go's TUN reader (see the stackTun literal in createNetTUNWithStack).
+// 1024 was too small for several connections' simultaneous TCP slow-start growth; channel.Endpoint drops silently (not blocks) when full, which reads as network loss.
+const tunQueueDepth = 8192
 
 // stackTun implements amneziawg-go's tun.Device directly against a gVisor
 // channel endpoint, the same approach amneziawg-go's own tun/netstack
