@@ -53,6 +53,7 @@ import { activateOnKey } from '@/utils/a11y';
 
 import { useTheme } from '@/hooks/useTheme';
 import { formatInboundLabel } from '@/lib/inbounds/label';
+import { isRelayEntryTag } from '@/lib/xray/relay';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useClients } from '@/hooks/useClients';
@@ -193,6 +194,7 @@ function readFilterState(): PersistedFilterState {
         buckets: Array.isArray(fromRaw.buckets) ? fromRaw.buckets : [],
         protocols: Array.isArray(fromRaw.protocols) ? fromRaw.protocols : [],
         inboundIds: Array.isArray(fromRaw.inboundIds) ? fromRaw.inboundIds : [],
+        sources: Array.isArray(fromRaw.sources) ? fromRaw.sources : [],
         nodeIds: Array.isArray(fromRaw.nodeIds) ? fromRaw.nodeIds : [],
         groups: Array.isArray(fromRaw.groups) ? fromRaw.groups : [],
       },
@@ -457,6 +459,7 @@ export default function ClientsPage() {
       filter: filters.buckets.join(','),
       protocol: filters.protocols.join(','),
       inbound: effectiveInboundCsv,
+      source: filters.sources.join(','),
       expiryFrom: filters.expiryFrom,
       expiryTo: filters.expiryTo,
       usageFrom: gbToBytes(filters.usageFromGB),
@@ -476,6 +479,7 @@ export default function ClientsPage() {
     debouncedSearch,
     filters,
     effectiveInboundCsv,
+    filters.sources,
     sortColumn,
     sortOrder,
   ]);
@@ -500,6 +504,11 @@ export default function ClientsPage() {
     for (const ib of inbounds) out[ib.id] = ib;
     return out;
   }, [inbounds]);
+  const nodesById = useMemo(() => {
+    const out = new Map<number, (typeof nodes)[number]>();
+    for (const node of nodes || []) out.set(node.id, node);
+    return out;
+  }, [nodes]);
 
   const protocolOptions = useMemo(() => {
     const values = new Set<string>(
@@ -518,7 +527,7 @@ export default function ClientsPage() {
 
   function inboundLabel(id: number) {
     const ib = inboundsById[id];
-    return formatInboundLabel(ib?.tag, ib?.remark);
+    return formatInboundLabel(ib?.tag, ib?.remark, ib?.port);
   }
 
   const clientBucket = useCallback(
@@ -1103,9 +1112,26 @@ export default function ClientsPage() {
             <ClientInboundChips
               ids={record.inboundIds || EMPTY_INBOUND_IDS}
               inboundsById={inboundsById}
+              nodesById={nodesById}
+              localNodeLabel={t('pages.clients.filters.localPanel')}
               protocolColors={INBOUND_PROTOCOL_COLORS}
               chipLimit={INBOUND_CHIP_LIMIT}
             />
+          );
+        },
+      },
+      {
+        title: t('pages.clients.source'),
+        key: 'source',
+        width: 90,
+        render: (_v, record) => {
+          const ids = record.inboundIds || EMPTY_INBOUND_IDS;
+          if (ids.length === 0) return <Tag>{t('pages.clients.sources.standalone')}</Tag>;
+          const relay = ids.some((id) => isRelayEntryTag(inboundsById[id]?.tag));
+          return relay ? (
+            <Tag color="cyan">{t('pages.clients.sources.relay')}</Tag>
+          ) : (
+            <Tag color="geekblue">{t('pages.clients.sources.inbound')}</Tag>
           );
         },
       },
@@ -1166,6 +1192,7 @@ export default function ClientsPage() {
       clientBucket,
       isOnline,
       inboundsById,
+      nodesById,
       filters,
       allGroups,
       datepicker,
@@ -1582,6 +1609,21 @@ export default function ClientsPage() {
                               {inboundLabel(id)}
                             </Tag>
                           ))}
+                          {filters.sources.map((source) => (
+                            <Tag
+                              key={`s-${source}`}
+                              closable
+                              color="cyan"
+                              onClose={() =>
+                                setFilters({
+                                  ...filters,
+                                  sources: filters.sources.filter((x) => x !== source),
+                                })
+                              }
+                            >
+                              {t(`pages.clients.sources.${source}`)}
+                            </Tag>
+                          ))}
                           {filters.groups.map((g) => (
                             <Tag
                               key={`g-${g}`}
@@ -1727,6 +1769,21 @@ export default function ClientsPage() {
                                       <Badge status={bucketBadgeStatus(bucket)} />
                                     )}
                                     <span className="tag-name">{row.email}</span>
+                                    {row.inboundIds?.length === 0 ? (
+                                      <Tag className="status-tag">
+                                        {t('pages.clients.sources.standalone')}
+                                      </Tag>
+                                    ) : row.inboundIds?.some((id) =>
+                                        isRelayEntryTag(inboundsById[id]?.tag),
+                                      ) ? (
+                                      <Tag color="cyan" className="status-tag">
+                                        {t('pages.clients.sources.relay')}
+                                      </Tag>
+                                    ) : (
+                                      <Tag color="geekblue" className="status-tag">
+                                        {t('pages.clients.sources.inbound')}
+                                      </Tag>
+                                    )}
                                     {bucket === 'depleted' && (
                                       <Tag color="red" className="status-tag">
                                         {t('depleted')}

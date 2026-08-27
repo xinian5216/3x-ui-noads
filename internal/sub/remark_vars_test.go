@@ -410,7 +410,7 @@ func TestConnectionTokensDisplayContextUnchanged(t *testing.T) {
 	}
 }
 
-func TestIdentityTokenBodyVsDisplay(t *testing.T) {
+func TestIdentityTokenKeptInBodyAndDisplay(t *testing.T) {
 	const tmpl = "{{INBOUND}}|📊{{TRAFFIC_LEFT}}|{{EMAIL}}"
 	inbound := &model.Inbound{
 		Remark:         "DE",
@@ -420,10 +420,17 @@ func TestIdentityTokenBodyVsDisplay(t *testing.T) {
 	}
 	client := model.Client{Email: "john@x"}
 
-	body := &SubService{remarkTemplate: tmpl, subscriptionBody: true, usageShown: map[string]bool{}}
+	body := &SubService{
+		remarkTemplate:         tmpl,
+		subscriptionBody:       true,
+		showIdentityOnAllLinks: true,
+		usageShown:             map[string]bool{},
+	}
 	_ = body.genTemplatedRemark(inbound, client, "", "ws") // first link consumes the usage block
-	if second := body.genTemplatedRemark(inbound, client, "", "ws"); strings.Contains(second, "john@x") {
-		t.Fatalf("repeat body link %q must drop the identity token", second)
+	if second := body.genTemplatedRemark(inbound, client, "", "ws"); !strings.Contains(second, "john@x") {
+		t.Fatalf("repeat body link %q must keep the identity token", second)
+	} else if strings.Contains(second, "GB") {
+		t.Fatalf("repeat body link %q must still drop usage info", second)
 	}
 
 	display := &SubService{remarkTemplate: tmpl, subscriptionBody: false}
@@ -674,11 +681,12 @@ func TestUsageOnFirstLinkOnly_SingleBracket(t *testing.T) {
 	}
 }
 
-func TestEmailOnFirstLinkOnly(t *testing.T) {
+func TestEmailOnEveryBodyLink(t *testing.T) {
 	s := &SubService{
-		remarkTemplate:   "{{INBOUND}} {{EMAIL}}|📊{{TRAFFIC_LEFT}}",
-		subscriptionBody: true,
-		usageShown:       map[string]bool{},
+		remarkTemplate:         "{{INBOUND}} {{EMAIL}}|📊{{TRAFFIC_LEFT}}",
+		subscriptionBody:       true,
+		showIdentityOnAllLinks: true,
+		usageShown:             map[string]bool{},
 	}
 	inbound := &model.Inbound{
 		Remark: "DE",
@@ -694,11 +702,14 @@ func TestEmailOnFirstLinkOnly(t *testing.T) {
 	if !strings.Contains(first, "alice@x") {
 		t.Fatalf("first link should carry email: %q", first)
 	}
-	if strings.Contains(second, "alice@x") {
-		t.Fatalf("second link must not carry email: %q", second)
+	if !strings.Contains(second, "alice@x") {
+		t.Fatalf("second link should still carry email so repeated client profiles stay distinguishable: %q", second)
 	}
 	if !strings.Contains(second, "DE") {
 		t.Fatalf("second link should still carry the inbound name: %q", second)
+	}
+	if strings.Contains(second, "GB") {
+		t.Fatalf("second link must still drop usage info: %q", second)
 	}
 }
 
@@ -761,5 +772,59 @@ func TestGenTemplatedRemarkPreservesConfiguredOuterWhitespace(t *testing.T) {
 	got := s.genTemplatedRemark(&model.Inbound{Remark: "DE"}, model.Client{Email: "user@example.test"}, "", "tcp")
 	if got != "  DE  " {
 		t.Fatalf("remark = %q, want configured outer whitespace preserved", got)
+	}
+}
+
+func TestRepeatedBodyRemarksGetNumericSuffix(t *testing.T) {
+	s := &SubService{subscriptionBody: true}
+	inbound := &model.Inbound{Remark: "日本"}
+	client := model.Client{Email: "ZouJP"}
+
+	first := s.genHostRemark(inbound, client, "", "")
+	second := s.genHostRemark(inbound, client, "", "")
+	third := s.genHostRemark(inbound, client, "", "")
+
+	if first != "日本-ZouJP" {
+		t.Fatalf("first remark = %q, want 日本-ZouJP", first)
+	}
+	if second != "日本-ZouJP-2" {
+		t.Fatalf("second remark = %q, want 日本-ZouJP-2", second)
+	}
+	if third != "日本-ZouJP-3" {
+		t.Fatalf("third remark = %q, want 日本-ZouJP-3", third)
+	}
+}
+
+func TestRepeatedTemplatedBodyRemarksGetNumericSuffix(t *testing.T) {
+	s := &SubService{
+		remarkTemplate:         "{{INBOUND}}-{{EMAIL}}",
+		subscriptionBody:       true,
+		showIdentityOnAllLinks: true,
+		usageShown:             map[string]bool{},
+	}
+	inbound := &model.Inbound{Remark: "日本"}
+	client := model.Client{Email: "ZouJP"}
+
+	first := s.genTemplatedRemark(inbound, client, "", "")
+	second := s.genTemplatedRemark(inbound, client, "", "")
+
+	if first != "日本-ZouJP" {
+		t.Fatalf("first templated remark = %q, want 日本-ZouJP", first)
+	}
+	if second != "日本-ZouJP-2" {
+		t.Fatalf("second templated remark = %q, want 日本-ZouJP-2", second)
+	}
+}
+
+func TestRepeatedDisplayRemarksDoNotGetNumericSuffix(t *testing.T) {
+	s := &SubService{}
+	inbound := &model.Inbound{Remark: "日本"}
+	client := model.Client{Email: "ZouJP"}
+
+	first := s.genHostRemark(inbound, client, "", "")
+	second := s.genHostRemark(inbound, client, "", "")
+
+	if first != "日本-ZouJP" || second != "日本-ZouJP" {
+		t.Fatalf("display remarks should stay unchanged, got %q and %q", first, second)
 	}
 }

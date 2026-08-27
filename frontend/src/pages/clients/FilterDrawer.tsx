@@ -55,7 +55,7 @@ export default function FilterDrawer({
     () =>
       inbounds.map((ib) => ({
         value: ib.id,
-        label: formatInboundLabel(ib.tag, ib.remark),
+        label: formatInboundLabel(ib.tag, ib.remark, ib.port),
       })),
     [inbounds],
   );
@@ -137,6 +137,19 @@ export default function FilterDrawer({
             showSearch={{ optionFilterProp: 'label' }}
             listHeight={220}
           />
+        </Form.Item>
+
+        <Form.Item label={t('pages.clients.source')}>
+          <Checkbox.Group
+            value={filters.sources}
+            onChange={(v) => patch('sources', v as ClientFilters['sources'])}
+          >
+            <Space orientation="vertical">
+              <Checkbox value="relay">{t('pages.clients.sources.relay')}</Checkbox>
+              <Checkbox value="inbound">{t('pages.clients.sources.inbound')}</Checkbox>
+              <Checkbox value="standalone">{t('pages.clients.sources.standalone')}</Checkbox>
+            </Space>
+          </Checkbox.Group>
         </Form.Item>
 
         {nodes.length > 0 && (

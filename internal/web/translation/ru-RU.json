@@ -287,6 +287,7 @@
       "enable": "Включить",
       "remark": "Примечание",
       "node": "Узел",
+      "relay": { "badge": "Relay", "entryMode": "Entry source", "createNewEntry": "New entry", "useExistingEntry": "Use existing entry", "existingEntry": "Existing entry", "selectExistingEntry": "Select an existing local entry", "noExistingEntry": "No local entries available", "existingEntryHint": "Only local entries are shown; an inbound on a remote server cannot be used directly as a local relay entry." },
       "deployTo": "Развернуть на",
       "localPanel": "Локальная панель",
       "fallbacks": {
@@ -318,6 +319,7 @@
       "selectAll": "Выбрать всё",
       "bulkDeleteConfirmTitle": "Удалить {count} подключений?",
       "bulkDeleteConfirmContent": "Выбранные подключения и все их клиенты будут удалены. Это действие нельзя отменить.",
+      "deleteOrphanCheckbox": "Также удалить клиентов, оставшихся без входящих подключений ({count})",
       "cloneConfirmTitle": "Клонировать подключение \"{remark}\"?",
       "cloneConfirmContent": "Создаёт копию с новым портом и пустым списком клиентов.",
       "delAllClients": "Удалить всех клиентов",
@@ -727,8 +729,10 @@
       "clearAllFilters": "Очистить все",
       "filters": {
         "nodes": "Узлы",
-        "localPanel": "Локально (эта панель)"
+      "localPanel": "Локально (эта панель)"
       },
+      "source": "Source",
+      "sources": { "relay": "Relay", "inbound": "Inbound", "standalone": "Standalone" },
       "showingCount": "Показано {shown} из {total}",
       "sortOldest": "Сначала старые",
       "sortNewest": "Сначала новые",

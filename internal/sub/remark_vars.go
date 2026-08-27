@@ -525,6 +525,11 @@ var usageInfoTokens = map[string]bool{
 	"JALALI_EXPIRE_DATE": true,
 }
 
+var identityTokens = map[string]bool{
+	"EMAIL":    true,
+	"USERNAME": true,
+}
+
 var connectionTokens = map[string]bool{
 	"PROTOCOL":  true,
 	"TRANSPORT": true,
@@ -534,13 +539,9 @@ var connectionTokens = map[string]bool{
 var displayRemoveTokens = mergeTokenSets(usageInfoTokens, connectionTokens)
 
 // firstLinkOnlyBodyTokens are stripped from every subscription-body link after a
-// client's first one: the usage/info tokens plus the per-client EMAIL/USERNAME
-// identity. A client app needs the email once, so repeating it on every link of
-// the same subscription is noise — show it on the first link only, like traffic.
-var firstLinkOnlyBodyTokens = mergeTokenSets(usageInfoTokens, map[string]bool{
-	"EMAIL":    true,
-	"USERNAME": true,
-})
+// client's first one. EMAIL/USERNAME are restored on later links only when
+// showIdentityOnAllLinks is enabled.
+var firstLinkOnlyBodyTokens = mergeTokenSets(usageInfoTokens, identityTokens)
 
 func mergeTokenSets(sets ...map[string]bool) map[string]bool {
 	out := make(map[string]bool)
@@ -664,9 +665,23 @@ func (s *SubService) genTemplatedRemark(inbound *model.Inbound, client model.Cli
 		tmpl = filterRemarkTemplate(translateUISingleBrackets(s.remarkTemplate), displayRemoveTokens)
 	}
 	if out := expandRemarkVars(tmpl, ctx); strings.TrimSpace(out) != "" {
-		return out
+		return s.uniqueBodyRemark(out)
 	}
-	return ctx.configName()
+	return s.uniqueBodyRemark(ctx.configName())
+}
+
+func (s *SubService) uniqueBodyRemark(remark string) string {
+	if !s.subscriptionBody || strings.TrimSpace(remark) == "" {
+		return remark
+	}
+	if s.remarkCounts == nil {
+		s.remarkCounts = map[string]int{}
+	}
+	s.remarkCounts[remark]++
+	if s.remarkCounts[remark] <= 1 {
+		return remark
+	}
+	return fmt.Sprintf("%s-%d", remark, s.remarkCounts[remark])
 }
 
 // genHostRemark builds one host endpoint's remark for a specific client. With a
@@ -677,5 +692,5 @@ func (s *SubService) genHostRemark(inbound *model.Inbound, client model.Client, 
 	if s.remarkTemplate != "" {
 		return s.genTemplatedRemark(inbound, client, hostRemark, transport)
 	}
-	return fallbackRemark(inbound.Remark, hostRemark, client.Email)
+	return s.uniqueBodyRemark(fallbackRemark(inbound.Remark, hostRemark, client.Email))
 }
