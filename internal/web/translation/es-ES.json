@@ -670,7 +670,8 @@
           "node": "Dirección del nodo",
           "listen": "Dirección de escucha del inbound",
           "custom": "Personalizada"
-        }
+        },
+        "autoFill": "Autocompletar"
       },
       "info": {
         "mode": "Modo",
@@ -689,7 +690,8 @@
         "peerNumber": "Peer {n}",
         "peerNumberConfig": "Config Peer {n}"
       },
-      "sniffingDestOverride": "Anulación de destino"
+      "sniffingDestOverride": "Anulación de destino",
+      "advancedTitle": "Configuración avanzada"
     },
     "clients": {
       "tabBasics": "Básico",
@@ -875,6 +877,7 @@
       "amneziaWgForwardedPorts": "Puertos reenviados",
       "amneziaWgForwardedPortsHint": "Puertos/rangos redirigidos (DNAT) a este cliente, p. ej. 80, 443, 8000-8100. Déjalo vacío si no aplica.",
       "amneziaWgConfig": "Configuración de AmneziaWG",
+      "tuicConfig": "Configuración de TUIC (Clash)",
       "mtprotoSecret": "Secreto MTProto",
       "mtprotoSecretHint": "El secreto FakeTLS del cliente. Vuelve a generarlo para cambiarlo.",
       "mtprotoAdTag": "Ad-tag (canal patrocinado)",
@@ -1842,6 +1845,18 @@
         "randomTrailersHint": "Añade bytes aleatorios a cada paquete. Ambos extremos necesitan AmneziaWG 3.1+.",
         "disableCookies": "DisableCookies",
         "disableCookiesHint": "No enviar cookie replies — elimina una huella para DPI, pero debilita la mitigación de inundaciones."
+      },
+      "tuic": {
+        "congestionControl": "Control de congestión",
+        "alpn": "ALPN",
+        "udpRelayMode": "Modo de retransmisión UDP",
+        "zeroRttHandshake": "Apretón de manos 0-RTT",
+        "logLevel": "Nivel de registro",
+        "maxIdleTime": "Tiempo máx. de inactividad (s)",
+        "authTimeout": "Tiempo de espera de autenticación (s)",
+        "maxUdpRelayPacketSize": "Tamaño máx. de paquete UDP",
+        "sni": "SNI",
+        "sniHint": "Sobrescritura de Server Name Indication"
       },
       "tun": {
         "userLevel": "Nivel de Usuario"

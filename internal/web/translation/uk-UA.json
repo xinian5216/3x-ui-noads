@@ -670,7 +670,8 @@
           "node": "Адреса вузла",
           "listen": "Адреса прослуховування inbound",
           "custom": "Користувацька"
-        }
+        },
+        "autoFill": "Автозаповнення"
       },
       "info": {
         "mode": "Режим",
@@ -689,7 +690,8 @@
         "peerNumber": "Peer {n}",
         "peerNumberConfig": "Конфіг Peer {n}"
       },
-      "sniffingDestOverride": "Перевизначення призначення"
+      "sniffingDestOverride": "Перевизначення призначення",
+      "advancedTitle": "Додаткові налаштування"
     },
     "clients": {
       "tabBasics": "Основні",
@@ -875,6 +877,7 @@
       "amneziaWgForwardedPorts": "Перенаправлені порти",
       "amneziaWgForwardedPortsHint": "Порти/діапазони, що перенаправляються (DNAT) на цього клієнта, напр. 80, 443, 8000-8100. Залиште порожнім, якщо не потрібно.",
       "amneziaWgConfig": "Конфігурація AmneziaWG",
+      "tuicConfig": "Конфігурація TUIC (Clash)",
       "mtprotoSecret": "Секрет MTProto",
       "mtprotoSecretHint": "Секрет FakeTLS клієнта. Згенеруйте заново, щоб змінити.",
       "mtprotoAdTag": "Рекламний тег (спонсорський канал)",
@@ -1842,6 +1845,18 @@
         "randomTrailersHint": "Додає випадкові байти в кінець кожного пакета. Обидві сторони мають підтримувати AmneziaWG 3.1+.",
         "disableCookies": "DisableCookies",
         "disableCookiesHint": "Ніколи не надсилати cookie reply — прибирає відбиток для DPI, але послаблює захист від флуду."
+      },
+      "tuic": {
+        "congestionControl": "Контроль перевантаження",
+        "alpn": "ALPN",
+        "udpRelayMode": "Режим ретрансляції UDP",
+        "zeroRttHandshake": "0-RTT рукостискання",
+        "logLevel": "Рівень журналювання",
+        "maxIdleTime": "Макс. час простою (сек)",
+        "authTimeout": "Таймаут автентифікації (сек)",
+        "maxUdpRelayPacketSize": "Макс. розмір пакета UDP",
+        "sni": "SNI",
+        "sniHint": "Перевизначення Server Name Indication"
       },
       "tun": {
         "userLevel": "Рівень користувача"
