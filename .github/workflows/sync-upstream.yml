@@ -33,13 +33,21 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git remote add upstream https://github.com/MHSanaei/3x-ui.git
-          git fetch upstream main --tags
+
+          # Official retargets moving tags such as `dev-latest`. Without
+          # --force, git 2.55+ fails the fetch with "would clobber existing
+          # tag" and the merge never runs. Lightweight tags are not pushed
+          # back by --follow-tags, so this only updates the runner's local
+          # copies.
+          git fetch upstream main --tags --force
 
           before="$(git rev-parse HEAD)"
 
           if ! git merge --no-edit upstream/main; then
-            git merge --abort || true
             echo "::error::Official changes conflict with private main. No code was pushed."
+            echo "Conflicting files:"
+            git diff --name-only --diff-filter=U || true
+            git merge --abort || true
             exit 1
           fi
 
