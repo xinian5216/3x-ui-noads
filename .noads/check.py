@@ -24,8 +24,10 @@ def finding_key(root, finding):
     context = '\n'.join(lines[finding['StartLine'] - 1:finding['EndLine']])
     return {'rule': finding['RuleID'], 'file': p.as_posix(), 'context_sha256': hashlib.sha256(context.encode()).hexdigest()}
 
-def check(root, report=None, built=False, control=None):
+def check(root, report=None, built=False, control=None, maintenance=False):
     root = root.resolve()
+    if maintenance and (built or report is not None or control is not None):
+        raise ValueError('--maintenance is only for maintenance repository self-checks')
     check_docs(root)
     if not (root / 'AGENTS.md').is_file():
         raise ValueError('Downstream AGENTS.md is missing')
@@ -36,7 +38,9 @@ def check(root, report=None, built=False, control=None):
     transform_hash = provenance.get('source_transform_sha256')
     if transform_hash:
         transform = root / '.noads/strip_sponsors.py'
-        if hashlib.sha256(transform.read_bytes()).hexdigest() != transform_hash:
+        # The maintenance repo carries the next transform while its provenance still
+        # names the last published release; generated trees keep the strict hash gate.
+        if not maintenance and hashlib.sha256(transform.read_bytes()).hexdigest() != transform_hash:
             raise ValueError('Advertising transform does not match source provenance')
         for file in (root / 'frontend/src').rglob('*'):
             if file.suffix not in ('.ts', '.tsx') or 'generated' in file.parts:
@@ -96,5 +100,7 @@ if __name__ == '__main__':
     parser.add_argument('--report', type=Path)
     parser.add_argument('--built', action='store_true')
     parser.add_argument('--control', type=Path)
+    parser.add_argument('--maintenance', action='store_true',
+                        help='Self-check of the maintenance repo: provenance may still name the last published release')
     args = parser.parse_args()
-    check(args.root, args.report, args.built, args.control)
+    check(args.root, args.report, args.built, args.control, args.maintenance)

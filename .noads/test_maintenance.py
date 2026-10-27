@@ -1,8 +1,11 @@
+import hashlib
+import json
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
+from check import check
 from clean_docs import SUPPORT_HEADINGS, check_docs, clean_docs, clean_text
 from preserve import DIRECTORIES, FILES, preserve_control, verify_control
 
@@ -97,7 +100,47 @@ class PreservationTests(unittest.TestCase):
             (source / 'AGENTS.md').write_text('untrusted')
             with self.assertRaises(ValueError):
                 preserve_control(source, control)
-            self.assertEqual((source / 'AGENTS.md').read_text(), 'untrusted')
+            self.assertEqual((source / 'AGENTS.md').read_text(encoding='utf-8'), 'untrusted')
+
+
+class MaintenanceProvenanceTests(unittest.TestCase):
+    """The maintenance self-check must not demand provenance of an unreleased transform."""
+
+    def maintenance_root(self, directory):
+        root = Path(directory)
+        (root / '.noads').mkdir()
+        (root / '.noads/strip_sponsors.py').write_text('candidate transform\n', encoding='utf-8')
+        (root / '.noads/provenance.json').write_text(json.dumps({
+            'upstream_tag': 'v3.10.2',
+            'source_transform_sha256': hashlib.sha256(b'published transform').hexdigest(),
+        }), encoding='utf-8')
+        (root / 'AGENTS.md').write_text('rules\n', encoding='utf-8')
+        for name in ('frontend/src/routes.tsx', 'frontend/src/layouts/AppSidebar.tsx',
+                     'frontend/src/pages/index/IndexPage.tsx', 'frontend/src/pages/login/LoginPage.tsx',
+                     'internal/web/controller/index.go', 'install.sh', 'update.sh', 'x-ui.sh',
+                     'internal/web/service/panel/panel.go'):
+            file = root / name
+            file.parent.mkdir(parents=True, exist_ok=True)
+            file.write_text('package panel\n', encoding='utf-8')
+        subprocess.run(['git', '-C', str(root), 'init', '-q'], check=True)
+        return root
+
+    def test_maintenance_self_check_tolerates_the_next_transform(self):
+        with tempfile.TemporaryDirectory() as directory:
+            check(self.maintenance_root(directory), maintenance=True)
+
+    def test_maintenance_refuses_to_relax_a_release_validation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.maintenance_root(directory)
+            for kwargs in ({'built': True}, {'report': Path('report.json')}, {'control': root}):
+                with self.subTest(**kwargs):
+                    with self.assertRaises(ValueError):
+                        check(root, maintenance=True, **kwargs)
+
+    def test_generated_tree_still_enforces_the_provenance_hash(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaises(ValueError):
+                check(self.maintenance_root(directory))
 
 
 if __name__ == '__main__':

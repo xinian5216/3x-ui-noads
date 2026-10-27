@@ -1,5 +1,5 @@
 diff --git a/frontend/src/api/queryKeys.ts b/frontend/src/api/queryKeys.ts
-index dc34222..313fcff 100644
+index ee63449..7aac1b2 100644
 --- a/frontend/src/api/queryKeys.ts
 +++ b/frontend/src/api/queryKeys.ts
 @@ -1,5 +1,4 @@
@@ -8,20 +8,8 @@ index dc34222..313fcff 100644
    server: {
      status: () => ['server', 'status'] as const,
      fail2banStatus: () => ['server', 'fail2banStatus'] as const,
-diff --git a/frontend/src/hooks/usePageTitle.ts b/frontend/src/hooks/usePageTitle.ts
-index 4b2341e..c6f1816 100644
---- a/frontend/src/hooks/usePageTitle.ts
-+++ b/frontend/src/hooks/usePageTitle.ts
-@@ -14,7 +14,6 @@ const TITLE_KEYS: Record<string, string> = {
-   '/outbound': 'menu.outbounds',
-   '/routing': 'menu.routing',
-   '/api-docs': 'menu.apiDocs',
--  '/sponsors': 'menu.sponsors',
- };
- 
- export function usePageTitle() {
 diff --git a/frontend/src/pages/api-docs/endpoints.ts b/frontend/src/pages/api-docs/endpoints.ts
-index a0b343a..51ca7a8 100644
+index b8cee96..846d16e 100644
 --- a/frontend/src/pages/api-docs/endpoints.ts
 +++ b/frontend/src/pages/api-docs/endpoints.ts
 @@ -236,13 +236,6 @@ export const sections: readonly Section[] = [
@@ -39,7 +27,7 @@ index a0b343a..51ca7a8 100644
          method: 'POST',
          path: '/getTwoFactorEnable',
 diff --git a/frontend/src/pages/index/IndexPage.tsx b/frontend/src/pages/index/IndexPage.tsx
-index 9c434a3..c53ffda 100644
+index c6d4fef..c2457e2 100644
 --- a/frontend/src/pages/index/IndexPage.tsx
 +++ b/frontend/src/pages/index/IndexPage.tsx
 @@ -22,7 +22,6 @@ import { useStatusQuery } from '@/api/queries/useStatusQuery';
@@ -60,7 +48,7 @@ index 9c434a3..c53ffda 100644
                      <div className="ov-health" style={{ color: health.color }}>
                        <span className="ov-health-mark" />
 diff --git a/frontend/src/pages/login/LoginPage.tsx b/frontend/src/pages/login/LoginPage.tsx
-index ac5510a..59f8360 100644
+index bc9b1c7..b6375f4 100644
 --- a/frontend/src/pages/login/LoginPage.tsx
 +++ b/frontend/src/pages/login/LoginPage.tsx
 @@ -26,7 +26,6 @@ import { FormProvider, useForm } from 'react-hook-form';
@@ -71,7 +59,7 @@ index ac5510a..59f8360 100644
  import { pauseAnimationsUntilLeave, useTheme } from '@/hooks/useTheme';
  import { LoginFormSchema, TwoFactorCodeSchema, type LoginFormValues } from '@/schemas/login';
  import './LoginPage.css';
-@@ -248,7 +247,6 @@ export default function LoginPage() {
+@@ -254,7 +253,6 @@ export default function LoginPage() {
                      </Form.Item>
                    </Form>
                  </FormProvider>
@@ -79,28 +67,36 @@ index ac5510a..59f8360 100644
                </div>
              )}
            </div>
-diff --git a/frontend/src/routes.tsx b/frontend/src/routes.tsx
-index e5927ce..beb9a4e 100644
---- a/frontend/src/routes.tsx
-+++ b/frontend/src/routes.tsx
-@@ -13,7 +13,6 @@ const HostsPage = lazy(() => import('@/pages/hosts/HostsPage'));
+diff --git a/frontend/src/routes/panelRoutes.tsx b/frontend/src/routes/panelRoutes.tsx
+index b003a11..63ea3be 100644
+--- a/frontend/src/routes/panelRoutes.tsx
++++ b/frontend/src/routes/panelRoutes.tsx
+@@ -3,7 +3,6 @@ import type { ComponentType } from 'react';
+ import {
+   ApiOutlined,
+   ClusterOutlined,
+-  CrownOutlined,
+   DashboardOutlined,
+   ExportOutlined,
+   GlobalOutlined,
+@@ -24,7 +23,6 @@ const HostsPage = lazy(() => import('@/pages/hosts/HostsPage'));
  const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'));
  const XrayPage = lazy(() => import('@/pages/xray/XrayPage'));
  const ApiDocsPage = lazy(() => import('@/pages/api-docs/ApiDocsPage'));
 -const SponsorsPage = lazy(() => import('@/pages/sponsors/SponsorsPage'));
  
- function withSuspense(node: React.ReactNode) {
-   return (
-@@ -52,7 +51,6 @@ const routes: RouteObject[] = [
-       { path: 'outbound', element: withSuspense(<XrayPage />) },
-       { path: 'routing', element: withSuspense(<XrayPage />) },
-       { path: 'api-docs', element: withSuspense(<ApiDocsPage />) },
--      { path: 'sponsors', element: withSuspense(<SponsorsPage />) },
-     ],
-   },
+ export interface PanelRoute {
+   path: string;
+@@ -47,7 +45,6 @@ export const PANEL_ROUTES: PanelRoute[] = [
+   { path: '/settings', titleKey: 'menu.settings', icon: SettingOutlined, component: SettingsPage },
+   { path: '/xray', titleKey: 'menu.xray', icon: ToolOutlined, component: XrayPage },
+   { path: '/api-docs', titleKey: 'menu.apiDocs', icon: ApiOutlined, component: ApiDocsPage },
+-  { path: '/sponsors', titleKey: 'menu.sponsors', icon: CrownOutlined, component: SponsorsPage },
  ];
+ 
+ export const PANEL_ROUTE_PATHS = PANEL_ROUTES.map((route) => route.path);
 diff --git a/internal/web/controller/index.go b/internal/web/controller/index.go
-index faf13bc..a5ad9af 100644
+index 0433e2e..8f8e32f 100644
 --- a/internal/web/controller/index.go
 +++ b/internal/web/controller/index.go
 @@ -6,7 +6,6 @@ import (
@@ -126,9 +122,9 @@ index faf13bc..a5ad9af 100644
 -	g.GET("/sponsors", a.sponsors)
 -	g.GET("/sponsors/logo/:name", a.sponsorLogo)
  
- 	g.POST("/login", middleware.CSRFMiddleware(), a.login)
- 	g.POST("/logout", middleware.CSRFMiddleware(), a.logout)
- 	g.POST("/getTwoFactorEnable", middleware.CSRFMiddleware(), a.getTwoFactorEnable)
+ 	g.POST("/login", middleware.CSRFMiddleware(getRemoteIp), a.login)
+ 	g.POST("/logout", middleware.CSRFMiddleware(getRemoteIp), a.logout)
+ 	g.POST("/getTwoFactorEnable", middleware.CSRFMiddleware(getRemoteIp), a.getTwoFactorEnable)
  }
  
 -// sponsors is public so the login page can render its slot; failures stay silent.
@@ -157,7 +153,7 @@ index faf13bc..a5ad9af 100644
  func (a *IndexController) index(c *gin.Context) {
  	if session.IsLogin(c) {
 diff --git a/internal/web/routes_contract_test.go b/internal/web/routes_contract_test.go
-index 0364c25..ecc0b53 100644
+index dccdcb4..723fafe 100644
 --- a/internal/web/routes_contract_test.go
 +++ b/internal/web/routes_contract_test.go
 @@ -23,7 +23,7 @@ and an entry for a removed route documents an endpoint that 404s. This test

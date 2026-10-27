@@ -1,8 +1,8 @@
 name: Sync and publish stable no-ads releases
 
 on:
-  schedule:
-    - cron: '17 * * * *'
+  # Hourly sync paused while validating the v3.11.0 controlled rollout.
+  # Restore schedule only after manual publish succeeds.
   workflow_dispatch:
     inputs:
       upstream_tag:
@@ -36,7 +36,7 @@ jobs:
       - name: Test maintenance protection and README cleanup rules
         run: |
           python -m unittest discover -s .noads -p 'test_*.py'
-          python .noads/check.py
+          python .noads/check.py --maintenance
       - name: Find pending official stable release
         id: select
         env:
