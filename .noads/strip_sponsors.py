@@ -23,9 +23,13 @@ def strip_sidebar(text):
     text = replace(text, r"^import SponsorSlot from '@/components/sponsor/SponsorSlot';\n", (0, 1))
     # v3.10.2 removed both sidebar slots upstream; v3.10.0 has two.
     text = replace(text, r'^\s*<SponsorSlot\b[\s\S]*?/>\n', (0, 2))
+    # v3.11.0 builds the nav from PANEL_ROUTES; noads.patch drops the sponsors entry there.
     for pattern in (
         r'^  CrownOutlined,\n', r"^  \| 'sponsors'\n", r'^  sponsors: CrownOutlined,\n',
         r"^      \{ key: '/sponsors', icon: 'sponsors', title: t\('menu.sponsors'\) \},\n",
+    ):
+        text = replace(text, pattern, (0, 1))
+    for pattern in (
         r'^  HeartOutlined,\n', r"^const DONATE_URL = '[^'\n]+';\n",
         r'^function DonateButton\([^\n]+\) \{\n[\s\S]*?^\}\n\n',
     ):
@@ -33,8 +37,10 @@ def strip_sidebar(text):
     return replace(text, r"^\s*<DonateButton ariaLabel=\{t\('menu.donate'\) \|\| 'Donate'\} />\n", (2,))
 
 def strip_palette(text):
-    text = replace(text, r'^  CrownOutlined,\n')
-    return replace(text, r"^      \{\n        path: '/sponsors',\n[\s\S]*?^      \},\n")
+    # v3.11.0 builds the palette from PANEL_ROUTES; the keyword map still lists the route.
+    text = replace(text, r'^  CrownOutlined,\n', (0, 1))
+    text = replace(text, r"^      \{\n        path: '/sponsors',\n[\s\S]*?^      \},\n", (0, 1))
+    return replace(text, r"^  '/sponsors': \[[^\]]*\],\n")
 
 def strip_json(data, kind):
     if kind == 'translation':

@@ -23,8 +23,11 @@
 
 ```sh
 python -m unittest discover -s .noads -p 'test_*.py'
-python .noads/check.py
+python .noads/check.py --maintenance
 git diff --check
 ```
+
+`--maintenance` 只用于本仓库自检：此时 provenance 记录的仍是上次发布，允许转换脚本已更新。
+对 `prepare.py` 生成的发行源码树，仍用 `python .noads/check.py --root <树> --control .` 严格校验，不得加该参数。
 
 同步代码时沿用 `.github/workflows/noads-sync.yml` 中的密钥扫描、前端类型检查/测试/构建、Go 回归测试及八个平台构建。规则变化还必须用原始上游 release 验证准备流程，确认本仓库控制文件按字节保留、README 推广清理成功、许可证未变化。

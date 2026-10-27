@@ -1,0 +1,69 @@
+name: PR verification (read-only)
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: noads-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  verify-v3-11:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Verify maintenance rules and prepare pristine v3.11.0
+        env:
+          CONTROL: ${{ github.workspace }}
+          TAG: v3.11.0
+          PREPARED_OUTPUT: ${{ runner.temp }}/noads-pr-prepared
+        run: bash .noads/linux-verify.sh
+      - name: Scan prepared source with Gitleaks and strict no-ads gate
+        env:
+          PREPARED: ${{ runner.temp }}/noads-pr-prepared
+        run: |
+          set -euo pipefail
+          python "$GITHUB_WORKSPACE/.noads/download-gitleaks.py"
+          cd "$PREPARED"
+          /tmp/noads-gitleaks/gitleaks dir . --redact=100 --no-banner \
+            --report-format json --report-path "$RUNNER_TEMP/noads-pr-secrets.json" --exit-code 0
+          python "$GITHUB_WORKSPACE/.noads/check.py" \
+            --root "$PREPARED" --control "$GITHUB_WORKSPACE" \
+            --report "$RUNNER_TEMP/noads-pr-secrets.json"
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: ${{ runner.temp }}/noads-pr-prepared/go.mod
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: ${{ runner.temp }}/noads-pr-prepared/.nvmrc
+      - name: Generate v3.11.0 schemas, run frontend tests, build
+        working-directory: ${{ runner.temp }}/noads-pr-prepared/frontend
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run gen
+          gofmt -w ../internal/web/controller/index.go \
+            ../internal/web/controller/noads_routes_test.go \
+            ../internal/web/routes_contract_test.go
+          npx playwright install --with-deps chromium
+          npm run typecheck
+          npm test
+          npm run build
+      - name: Strict check of built no-ads frontend
+        env:
+          PREPARED: ${{ runner.temp }}/noads-pr-prepared
+        run: python "$GITHUB_WORKSPACE/.noads/check.py" --root "$PREPARED" --control "$GITHUB_WORKSPACE" --built
+      - name: Go regression tests on prepared v3.11.0 source
+        working-directory: ${{ runner.temp }}/noads-pr-prepared
+        run: |
+          set -euo pipefail
+          make dist-stub
+          make test-go
+          git diff --check
