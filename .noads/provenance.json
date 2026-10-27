@@ -1,9 +1,9 @@
 {
   "upstream_repository": "MHSanaei/3x-ui",
-  "upstream_tag": "v3.10.2",
-  "upstream_commit": "608ef4e4010bf83e2e78328e08f77efc051ad4d7",
+  "upstream_tag": "v3.11.0",
+  "upstream_commit": "c621ba9014a6aa21fd7c9ecf45655e44e24ebf13",
   "downstream_repository": "xinian5216/3x-ui-noads",
-  "patch_sha256": "a49858b8fe8de51b678d85da3853f2ea666e7daf0806c462fcc894304874c469",
-  "source_transform_sha256": "e670da212ec7e18ea48818782b12fc8a620cb622cffec6f352f6f0c8fa25b99e",
+  "patch_sha256": "63ad906cc429bae56cfb78c23ec9d64f282e62e39fed64c7b1b5abcfe596557d",
+  "source_transform_sha256": "5eb59c27e3d46faec4b984635ccc7e123c5a78ab72d1b48ea94734634a0e1d74",
   "variant": "noads"
 }

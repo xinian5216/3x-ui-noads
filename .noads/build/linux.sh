@@ -50,7 +50,7 @@ mkdir x-ui/bin
 cd x-ui/bin
 
 # Download dependencies
-Xray_URL="https://github.com/XTLS/Xray-core/releases/download/v26.10.10/"
+Xray_URL="https://github.com/XTLS/Xray-core/releases/download/v26.10.21/"
 if [ "${NOADS_PLATFORM}" == "amd64" ]; then
   fetch ${Xray_URL}Xray-linux-64.zip
   unzip Xray-linux-64.zip
