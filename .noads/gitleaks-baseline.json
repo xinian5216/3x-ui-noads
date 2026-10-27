@@ -463,5 +463,20 @@
     "rule": "generic-api-key",
     "file": "internal/xray/hot_diff_test.go",
     "context_sha256": "1204bca7f3908425d952adb329e1b5b04a4bc2e86693a9d30eef8cf6b3f2e7e1"
+  },
+  {
+    "rule": "generic-api-key",
+    "file": "internal/sub/settings_cache_test.go",
+    "context_sha256": "1c3377bd25b93fc6f7e2073707c03dc690ed7e5ba6679be5f28ca45b3cb2dd9d"
+  },
+  {
+    "rule": "generic-api-key",
+    "file": "internal/sub/settings_cache_test.go",
+    "context_sha256": "6f9f83eae376eaf5049b7ef2b63b2a473f01f3de2472c42c36891599468323e2"
+  },
+  {
+    "rule": "generic-api-key",
+    "file": "internal/web/service/inbound_client_stats_benchmark_test.go",
+    "context_sha256": "1880e0c674e45804b081a7ad09ebb578e681a40e7f88cbb07de064852ccc4711"
   }
 ]
