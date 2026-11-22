@@ -55,7 +55,7 @@ jobs:
           git worktree add --detach "$RUNNER_TEMP/noads-source" "$upstream_sha"
           cp "$RUNNER_TEMP/upstream-release.json" .noads/upstream-release.json
           python .noads/prepare.py --source "$RUNNER_TEMP/noads-source" --control "$GITHUB_WORKSPACE" --tag "$UPSTREAM_TAG" --sha "$upstream_sha" --repository "$GITHUB_REPOSITORY"
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7
         if: steps.select.outputs.changed == 'true'
         with:
           go-version-file: ${{ runner.temp }}/noads-source/go.mod
@@ -113,7 +113,7 @@ jobs:
         with:
           ref: ${{ needs.prepare.outputs.source_sha }}
           persist-credentials: false
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7
         with:
           go-version-file: go.mod
       - name: Test release selection and downstream maintenance rules
